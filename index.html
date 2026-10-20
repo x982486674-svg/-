@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>亲子每日菜谱</title>
+  <style>
+    :root { --ink:#24313a; --muted:#68777b; --cream:#fffaf0; --green:#527d62; --peach:#f5b28b; --card:#ffffff; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); font-family:"Microsoft YaHei",system-ui,sans-serif; background:linear-gradient(145deg,#f7eee1 0%,#e7f0e5 100%); min-height:100vh; }
+    .wrap { width:min(1100px,92%); margin:0 auto; padding:38px 0 52px; }
+    header { display:flex; justify-content:space-between; align-items:end; gap:20px; margin-bottom:26px; }
+    h1 { margin:0 0 8px; font-size:clamp(28px,5vw,48px); letter-spacing:.04em; }
+    .sub { margin:0; color:var(--muted); font-size:15px; }
+    .date { color:var(--green); font-weight:700; white-space:nowrap; }
+    .hero { display:flex; justify-content:space-between; align-items:center; gap:18px; background:rgba(255,255,255,.72); border:1px solid rgba(255,255,255,.9); border-radius:24px; padding:20px 24px; box-shadow:0 10px 30px #52644b18; margin-bottom:20px; }
+    button { border:0; border-radius:999px; padding:12px 20px; background:var(--green); color:#fff; font-size:15px; font-weight:700; cursor:pointer; box-shadow:0 5px 12px #527d6240; transition:.2s; }
+    button:hover { transform:translateY(-2px); background:#41694f; }
+    .notice { color:var(--muted); font-size:14px; }
+    .menu-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:17px; }
+    .meal { background:var(--card); border-radius:20px; padding:20px; box-shadow:0 8px 24px #52644b18; border-top:5px solid var(--peach); }
+    .meal:nth-child(2){ border-top-color:#dfcc72; } .meal:nth-child(3){ border-top-color:#85b59a; }
+    .meal h2 { margin:0 0 4px; font-size:18px; } .dish { font-size:24px; font-weight:800; margin:0 0 15px; }
+    .label { color:var(--green); font-size:13px; font-weight:800; margin:15px 0 6px; }
+    ul { margin:0; padding-left:19px; color:#4d5d60; line-height:1.7; font-size:14px; }
+    .method { color:#4d5d60; line-height:1.7; font-size:14px; margin:0; }
+    .tip { margin-top:19px; background:#fff5dd; border-radius:15px; padding:13px 16px; color:#705b36; font-size:14px; }
+    footer { text-align:center; color:var(--muted); font-size:12px; margin-top:25px; }
+    @media (max-width:760px){ header,.hero{align-items:flex-start; flex-direction:column;} .menu-grid{grid-template-columns:1fr;} button{width:100%;} }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <div><h1>今天吃什么？</h1><p class="sub">为一位家长和一位四岁小朋友准备的轻松一日三餐</p></div>
+      <div class="date" id="today"></div>
+    </header>
+    <section class="hero">
+      <div><strong>今日亲子菜单已准备好</strong><div class="notice">口味清淡、软烂易嚼；家长可在出锅后再加自己的调味。</div></div>
+      <button id="refresh" type="button">换一套今日菜单 ↻</button>
+    </section>
+    <section class="menu-grid" id="menu"></section>
+    <div class="tip">小提醒：给小朋友的食物请切成适口的小块，确认不过烫；坚果、整颗葡萄等食材请避免整颗提供。</div>
+    <footer>每次打开页面都会随机生成一套菜单 · 菜谱仅供日常灵感参考</footer>
+  </main>
+  <script>
+    const plans = [
+      { breakfast:['南瓜小米粥','小米60g、南瓜150g、鸡蛋1个','南瓜切丁与小米煮粥，鸡蛋蒸熟。'], lunch:['番茄牛肉面','牛里脊180g、番茄2个、面条180g、青菜','番茄煮汤，下面条和青菜，最后烫熟牛肉片。'], dinner:['豆腐虾仁蒸蛋','嫩豆腐250g、虾仁120g、鸡蛋3个','鸡蛋液加豆腐、虾仁蒸10分钟。'],tip:'肉类切碎，孩子份量少盐。'},
+      { breakfast:['皮蛋瘦肉粥','大米80g、瘦肉80g、皮蛋半个、青菜','大米煮粥，加入肉末和切碎皮蛋煮熟。'], lunch:['土豆炖鸡块','鸡腿肉220g、土豆2个、胡萝卜1根','鸡肉焯水，与土豆胡萝卜加水炖软。'], dinner:['清蒸鲈鱼配时蔬','鲈鱼1条、西兰花150g、米饭2碗','鲈鱼蒸熟去刺，西兰花焯熟。'],tip:'鱼肉仔细挑刺。'},
+      { breakfast:['葱花鸡蛋饼','面粉100g、鸡蛋2个、葱花、胡萝卜','调糊后小火煎熟，切成小块。'], lunch:['番茄鸡蛋盖饭','番茄2个、鸡蛋3个、米饭2碗','鸡蛋炒熟，加入番茄焖软，盖在米饭上。'], dinner:['冬瓜排骨汤','排骨250g、冬瓜250g、玉米1根','排骨焯水后与冬瓜玉米炖至软烂。'],tip:'排骨汤撇油，孩子只吃软肉。'},
+      { breakfast:['红薯杂粮粥','红薯1个、大米50g、燕麦30g、鸡蛋1个','红薯切块与米燕麦煮粥，鸡蛋煮熟。'], lunch:['香菇肉末豆腐','猪肉末150g、豆腐300g、香菇4朵','肉末炒香，加入香菇豆腐和少量水焖煮。'], dinner:['虾皮紫菜馄饨','猪肉180g、馄饨皮20张、紫菜少许','肉馅包馄饨煮熟，加入紫菜汤。'],tip:'虾皮少放并提前浸泡。'},
+      { breakfast:['山药瘦肉粥','山药150g、瘦肉80g、大米70g','山药切丁与大米煮粥，放入肉末煮熟。'], lunch:['胡萝卜牛肉饭','牛肉180g、胡萝卜1根、米饭2碗','牛肉切丁炒熟，加胡萝卜焖软拌饭。'], dinner:['清炒西葫芦鸡蛋','西葫芦1根、鸡蛋3个、米饭','鸡蛋炒熟盛出，西葫芦炒软后混合。'],tip:'牛肉逆纹切碎更易嚼。'},
+      { breakfast:['小米蒸蛋','小米粥1碗、鸡蛋2个、青菜','鸡蛋液与温粥混合蒸熟，配焯青菜。'], lunch:['清炖牛腩萝卜','牛腩250g、白萝卜1根、米饭','牛腩焯水炖软，加入萝卜继续炖。'], dinner:['番茄鳕鱼汤','鳕鱼180g、番茄2个、豆腐150g','番茄煮汤，放豆腐和去刺鳕鱼煮熟。'],tip:'鳕鱼确认无刺。'},
+      { breakfast:['芝麻花生糊','黑芝麻20g、花生20g、米粉60g、香蕉','芝麻花生打粉煮糊，配香蕉片。'], lunch:['青椒土豆丝肉丝','猪里脊150g、土豆2个、青椒半个、米饭','肉丝炒熟，加入土豆丝和青椒炒软。'], dinner:['香菇鸡汤面','鸡胸肉150g、香菇4朵、面条180g','鸡肉香菇煮汤，下面条煮熟。'],tip:'花生确认孩子不过敏并磨细。'},
+      { breakfast:['玉米鸡蛋羹','玉米粒100g、鸡蛋2个、温水','玉米切碎拌入蛋液，蒸熟。'], lunch:['红烧茄子肉末','茄子2根、肉末150g、米饭','茄子蒸软，肉末炒熟后合烧，少酱油。'], dinner:['白菜豆腐煲','白菜300g、豆腐300g、虾仁80g','白菜豆腐虾仁加水煮成汤煲。'],tip:'茄子去皮切碎更适合孩子。'},
+      { breakfast:['胡萝卜鸡蛋面','胡萝卜半根、鸡蛋1个、面条100g','胡萝卜煮软打泥，下面条和鸡蛋。'], lunch:['莲藕排骨饭','排骨220g、莲藕200g、米饭2碗','排骨莲藕炖熟，浇少量汤汁拌饭。'], dinner:['肉末蒸茄子','茄子2根、猪肉末150g、葱花','茄子蒸熟，铺炒香肉末再蒸3分钟。'],tip:'莲藕炖至酥软。'},
+      { breakfast:['红枣燕麦粥','燕麦60g、红枣2颗、牛奶100ml','燕麦红枣煮粥，出锅拌牛奶。'], lunch:['清蒸鸡腿饭','鸡腿2只、香菇、青菜、米饭','鸡腿去骨蒸熟切丁，配香菇青菜米饭。'], dinner:['鱼丸青菜汤','自制鱼丸200g、青菜150g、粉丝','鱼丸煮熟，加入青菜和粉丝。'],tip:'鱼丸切小并检查鱼刺。'},
+      { breakfast:['紫薯小米粥','紫薯1个、小米60g、鸡蛋1个','紫薯小米煮粥，鸡蛋水煮。'], lunch:['肉末蒸豆腐','嫩豆腐300g、肉末150g、香菇','豆腐铺肉末香菇，蒸12分钟。'], dinner:['山药鸡汤','鸡腿200g、山药200g、胡萝卜','鸡肉炖熟后加入山药胡萝卜煮软。'],tip:'山药和鸡肉切小块。'},
+      { breakfast:['小笼包配豆浆','鲜肉小笼包6个、无糖豆浆300ml','小笼包蒸熟，豆浆温热饮用。'], lunch:['虾仁蛋炒饭','虾仁120g、鸡蛋2个、米饭2碗、豌豆','鸡蛋虾仁炒熟，加入米饭豌豆翻炒。'], dinner:['白菜猪肉炖粉条','白菜300g、猪肉150g、粉条80g','猪肉白菜炖软，加入泡软粉条。'],tip:'粉条剪短，避免噎食。'},
+      { breakfast:['豆腐脑配菜包','嫩豆腐200g、鸡蛋1个、蔬菜包2个','豆腐蒸热，配蒸熟蔬菜包。'], lunch:['土豆牛肉焖饭','牛肉180g、土豆1个、洋葱半个、大米','全部切丁放电饭煲焖熟。'], dinner:['番茄豆腐汤','番茄2个、豆腐250g、鸡蛋1个','番茄煮软，加豆腐和蛋花。'],tip:'洋葱炒至透明再焖。'},
+      { breakfast:['菠菜鸡蛋面片','菠菜100g、鸡蛋1个、面片120g','菠菜焯水切碎，面片煮熟加蛋花。'], lunch:['清炖猪肉丸子','猪肉馅200g、冬瓜200g、米饭','肉馅做小丸子，与冬瓜炖熟。'], dinner:['蒸南瓜配鸡丝','南瓜250g、鸡胸肉150g、青菜','南瓜蒸熟，鸡肉蒸熟撕碎，配青菜。'],tip:'丸子做小一点。'},
+      { breakfast:['桂花小汤圆（无馅）','小汤圆100g、鸡蛋1个、桂花少许','小汤圆煮熟，配水煮蛋，桂花少放。'], lunch:['番茄牛腩饭','牛腩220g、番茄2个、米饭','牛腩炖软后加入番茄煮成汁拌饭。'], dinner:['芹菜香干肉丝','猪里脊150g、芹菜150g、香干100g','肉丝炒熟，加入芹菜香干炒软。'],tip:'汤圆切半后给孩子。'},
+      { breakfast:['土豆泥鸡蛋','土豆1个、鸡蛋2个、牛奶50ml','土豆蒸熟压泥拌牛奶，配鸡蛋。'], lunch:['香菇鸡肉粥','鸡肉150g、香菇3朵、大米80g','鸡肉香菇切碎与大米煮粥。'], dinner:['鲫鱼豆腐汤','鲫鱼1条、豆腐250g、青菜','鲫鱼煎后加水煮汤，放豆腐青菜，去刺盛汤。'],tip:'鲫鱼刺多，孩子只喝过滤后的汤并吃鱼腹肉。'},
+      { breakfast:['蔬菜鸡蛋卷','鸡蛋2个、胡萝卜、菠菜、面粉','材料调糊摊成薄卷，切段。'], lunch:['肉末茄子盖饭','茄子2根、肉末150g、米饭','茄子蒸软，与炒熟肉末拌匀盖饭。'], dinner:['玉米胡萝卜排骨汤','排骨220g、玉米1根、胡萝卜1根','排骨焯水后与玉米胡萝卜炖软。'],tip:'蔬菜切碎煮软。'},
+      { breakfast:['红豆小米粥','红豆30g、小米60g、鸡蛋1个','红豆提前浸泡，与小米煮粥，配鸡蛋。'], lunch:['鸡蛋虾仁豆腐','虾仁120g、鸡蛋2个、豆腐250g、米饭','虾仁豆腐蒸蛋，配米饭。'], dinner:['肉丝炒青菜','猪里脊150g、上海青250g、面条','肉丝炒熟，加入青菜炒软，配面条。'],tip:'青菜切段。'},
+      { breakfast:['南瓜发糕','南瓜150g、面粉120g、酵母、鸡蛋1个','南瓜泥和面发酵蒸熟，配鸡蛋。'], lunch:['番茄鸡肉丸','鸡胸肉200g、番茄2个、米饭','鸡肉剁泥做丸子煮熟，加入番茄汤。'], dinner:['豆角土豆炖肉','豆角200g、土豆1个、猪肉180g','猪肉炒香，加豆角土豆炖熟。'],tip:'豆角一定彻底煮熟。'},
+      { breakfast:['紫菜虾皮粥','大米70g、紫菜少许、虾皮少许、鸡蛋','大米煮粥，加入泡洗虾皮紫菜和蛋花。'], lunch:['清蒸肉饼','猪肉馅200g、鸡蛋1个、莲藕','肉馅拌莲藕碎蒸熟，配米饭。'], dinner:['冬瓜虾仁汤','冬瓜250g、虾仁120g、粉丝','冬瓜煮软，加入虾仁粉丝煮熟。'],tip:'虾皮注意含盐量。'},
+      { breakfast:['苹果燕麦粥','苹果1个、燕麦60g、牛奶100ml','苹果切丁煮软，加入燕麦和牛奶。'], lunch:['土豆鸡丁','鸡胸肉180g、土豆2个、胡萝卜','鸡丁炒熟，加入土豆胡萝卜焖软。'], dinner:['西红柿鸡蛋面疙瘩','番茄2个、鸡蛋2个、面粉120g','面粉调成小疙瘩，放入番茄汤煮熟，加入蛋花。'],tip:'面疙瘩做小颗粒。'},
+      { breakfast:['芝麻花卷配牛奶','小花卷2个、黑芝麻少许、牛奶250ml','花卷蒸热，芝麻磨碎拌牛奶。'], lunch:['香菇肉酱拌面','猪肉末150g、香菇4朵、面条180g、青菜','肉末香菇炒熟，加水煮成酱拌面。'], dinner:['清炒南瓜虾皮','南瓜250g、虾皮少许、鸡蛋1个','南瓜焖软，加入泡洗虾皮，配鸡蛋。'],tip:'虾皮少量即可。'},
+      { breakfast:['胡萝卜玉米粥','玉米粒100g、胡萝卜、香米70g、鸡蛋','玉米胡萝卜切碎与香米煮粥，配鸡蛋。'], lunch:['排骨土豆焖饭','排骨220g、土豆、米饭','排骨焯水与土豆、大米一起焖熟。'], dinner:['鸡丝凉面（温食）','鸡胸肉150g、面条180g、黄瓜、芝麻酱','面条煮熟过温水，拌鸡丝和少量芝麻酱。'],tip:'凉面放至温热再给孩子。'},
+      { breakfast:['豆沙包配小米粥','低糖豆沙包2个、小米粥1碗、鸡蛋','豆沙包蒸热，配小米粥和鸡蛋。'], lunch:['鲈鱼蒸蛋','鲈鱼肉150g、鸡蛋2个、豆腐、米饭','鱼肉去刺切碎，与豆腐蛋液蒸熟。'], dinner:['白菜肉片汤','猪里脊150g、白菜250g、粉丝','肉片白菜煮熟，加入粉丝。'],tip:'豆沙选择低糖。'},
+      { breakfast:['菠菜肉末粥','菠菜100g、猪肉末80g、大米70g','菠菜焯水切碎，与肉末大米煮粥。'], lunch:['番茄土豆炖牛肉','牛肉200g、番茄、土豆、米饭','牛肉炖软，加入番茄土豆煮熟。'], dinner:['蒸水蛋配西兰花','鸡蛋3个、西兰花150g、米饭','蛋液蒸熟，西兰花焯熟。'],tip:'西兰花掰成小朵。'},
+      { breakfast:['小米红薯粥','小米60g、红薯150g、牛奶100ml','红薯小米煮粥，出锅拌牛奶。'], lunch:['鸡肉香菇包菜饭','鸡腿肉180g、香菇、包菜、大米','食材切丁与大米焖熟。'], dinner:['虾仁冬瓜蒸饺','虾仁150g、冬瓜、饺子皮20张','虾仁冬瓜剁馅包饺子，蒸熟。'],tip:'饺子剪开冷却后食用。'},
+      { breakfast:['鸡蛋灌饼（软版）','面粉100g、鸡蛋2个、生菜少许','薄饼煎软，灌入蛋液和切碎生菜。'], lunch:['肉末土豆泥','猪肉末150g、土豆2个、胡萝卜','土豆蒸熟压泥，铺炒熟肉末胡萝卜。'], dinner:['豆腐白菜炖鱼片','嫩豆腐250g、鱼片180g、白菜','白菜豆腐煮软，加入鱼片煮熟。'],tip:'鱼片选少刺鱼种。'},
+      { breakfast:['山药红枣粥','山药150g、红枣2颗、大米70g、鸡蛋','山药红枣大米煮粥，配鸡蛋。'], lunch:['清蒸肉丸饭','猪肉馅200g、荸荠、米饭、青菜','肉馅加荸荠碎做丸子蒸熟，配青菜米饭。'], dinner:['番茄虾仁豆腐煲','番茄2个、虾仁120g、豆腐250g','番茄煮软，放豆腐虾仁煮熟。'],tip:'荸荠切碎，避免大块。'},
+      { breakfast:['玉米面小窝头','玉米面100g、面粉50g、鸡蛋1个、牛奶','和面蒸小窝头，配鸡蛋牛奶。'], lunch:['香菇胡萝卜鸡肉饭','鸡胸肉180g、香菇、胡萝卜、大米','食材切丁焖饭，出锅拌匀。'], dinner:['猪肝菠菜粥','猪肝50g、菠菜100g、大米70g','猪肝浸泡去腥切碎，与粥同煮，加入菠菜。'],tip:'猪肝少量且彻底煮熟。'},
+      { breakfast:['香蕉鸡蛋软饼','香蕉1根、鸡蛋2个、面粉80g','香蕉压泥拌面糊，小火煎软饼。'], lunch:['萝卜牛肉丸汤','牛肉馅180g、白萝卜、青菜、米饭','牛肉做小丸子，与萝卜煮汤。'], dinner:['香菇蒸鸡翅','鸡翅4只、香菇4朵、南瓜','鸡翅去骨切块与香菇南瓜蒸熟。'],tip:'鸡翅去骨后再给孩子。'},
+      { breakfast:['蔬菜瘦肉粥','瘦肉80g、胡萝卜、青菜、大米70g','所有食材切碎与大米煮粥。'], lunch:['番茄鱼片米线','鱼片180g、番茄、米线180g、青菜','番茄煮汤，米线煮熟，鱼片烫熟。'], dinner:['土豆胡萝卜炖牛肉','牛肉200g、土豆、胡萝卜、米饭','牛肉炖软后加入土豆胡萝卜。'],tip:'米线剪短，鱼肉挑刺。'},
+      { breakfast:['芝麻酱花卷配蛋','花卷2个、芝麻酱少许、鸡蛋1个、牛奶','花卷蒸热，芝麻酱薄涂，配鸡蛋牛奶。'], lunch:['青菜肉丝炒饭','猪里脊150g、青菜、鸡蛋、米饭','肉丝鸡蛋炒熟，加入青菜和米饭。'], dinner:['清炖鸡汤面','鸡腿肉180g、面条180g、青菜','鸡肉炖汤，下面条和青菜煮熟。'],tip:'芝麻酱少量且调稀。'}
+    ];
+    const labels = ['早餐','午餐','晚餐'];
+    const dateEl = document.querySelector('#today');
+    dateEl.textContent = new Intl.DateTimeFormat('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'long'}).format(new Date());
+    let last = -1;
+    function render(){ let i; do { i=Math.floor(Math.random()*plans.length); } while(i===last && plans.length>1); last=i; const p=plans[i];
+      document.querySelector('#menu').innerHTML = labels.map((label,n)=>{const item=p[['breakfast','lunch','dinner'][n]]; const [name, ingredients, method]=item; return `<article class="meal"><h2>${label}</h2><p class="dish">${name}</p><div class="label">所需食材（家长＋小朋友）</div><ul>${ingredients.split('、').map(x=>`<li>${x}</li>`).join('')}</ul><div class="label">烹调方式</div><p class="method">${method}</p></article>`}).join('');
+      document.querySelector('.tip').textContent='小提醒：'+p.tip;
+    }
+    document.querySelector('#refresh').addEventListener('click', render); render();
+  </script>
+</body>
+</html>
